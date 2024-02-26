@@ -8,10 +8,10 @@ info:
   description: |-
     This document is provided only for developers to use `Barat CSS (Credit Service Switch)` Kyan private APIs.</br>`*` means this parameter is Mandatory</br>for status like parameters, we highly suggest to chek `Schema` beside `Example Value` section for all possible values are presented in `description` field if `Schema` section.
 
-  version: 1.0.3
+  version: 1.0.0
   
 servers:
-  - url: https://merchant-api.barat.credit/v1.0
+  - url: https://kyan-merchant-api.barat.credit/v1.0
 
 tags:
   - name: Invoice
