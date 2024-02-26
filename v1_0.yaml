@@ -1,0 +1,1223 @@
+openapi: 3.0.3
+info:
+  title: Barat CSS - Kyan Merchant API Document
+  contact:
+    name: API Support
+    # url: https://www.barat.credit/support
+    email: it@barat.credit
+  description: |-
+    This document is provided only for developers to use `Barat CSS (Credit Service Switch)` Kyan private APIs.</br>`*` means this parameter is Mandatory</br>for status like parameters, we highly suggest to chek `Schema` beside `Example Value` section for all possible values are presented in `description` field if `Schema` section.
+
+  version: 1.0.3
+  
+servers:
+  - url: https://merchant-api.barat.credit/v1.0
+
+tags:
+  - name: Invoice
+    description: "Invoice management APIs. Invoices are necessary for any payment."
+  
+  # - name: Store
+  #   description: "Store management APIs"
+
+paths:
+  /invoice/:
+    post:
+      tags:
+        - Invoice
+      summary: "create an invoice."
+      description: "`store_id`:</br>&emsp;&emsp;&emsp;id of store if there any</br>`* client_username`:</br>&emsp;&emsp;&emsp;phone</br>&emsp;&emsp;&emsp;id number </br>`* invoice_id`:</br>&emsp;&emsp;&emsp;Merhant UNIQUE id for this invoice for furthor follow-up and procedures</br>`* payment_method`:<li>otp</br>&emsp;&emsp;&emsp;for OTP it's neccesary to send `client_username`. Otherwise, like a client not found error, a 404 statuse code will return as the response. in success case 200, id of invoice in Barat CSS as `id` and merchant invoice id as `invoice_id` will returned</li><li>ipg</br>&emsp;&emsp;&emsp;for IPG (Internet Payment Gateway) payment method, sending `client_username` is manadatory, but 404 will not returned as the result of client not found. In sucess case 200, id of invoice in Barat CSS as `id` and merchant invoice id as `invoice_id`, ready to pay IPG URL as `ipg_link` will returned</li></br>`callback_url`:</br>&emsp;&emsp;&emsp;Mandatory if payment_method is ipg. client after his/her payment will redirected to this url. ***we highly suggest** to set query params <u>in order to identify client when he/she redirected to your website.*</u> We consider `https://yoursite.com/?id=123` as a good `callback_url` which `123` is UNIQUE and belongs to this client. </br>`* total_price`:</br>&emsp;&emsp;&emsp;The price in IRR currency that client is asked to pay, after applying discounts and/or other parameters.</br>`expire_datetime`:</br>&emsp;&emsp;&emsp;An optional parameter to declare any expiary condition in Iranian calendar and 24 time format: 'day/month/year hour:minute:second timezone'</br>`note`:</br>&emsp;&emsp;&emsp;Merchant note which is not visible to Client</br>`items`</br>&emsp;&emsp;&emsp;Array of items of invoice."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createInvoice'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceResponse'
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '409':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createInvoiceErrorResponse409'
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+  /invoice/{invoice_id}/:
+    parameters:
+      - in: path
+        name: invoice_id
+        schema:
+          type: string
+        required: true
+        description: "`id` returned in create invoice section or merchant `invoice_id`, both are acceptable"
+    get:
+      tags:
+        - Invoice
+      summary: "follow-up invoice payment and/or retrieve data of an invoice."
+      description: ""
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceResponse'
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Invoice
+      summary: "edit an invoice."
+      description: "`store_id`:</br>&emsp;&emsp;&emsp;id of store if there any</br>`client_username`:</br>&emsp;&emsp;&emsp;phone</br>&emsp;&emsp;&emsp;id number </br>`payment_method`:<li>otp</br>&emsp;&emsp;&emsp;for OTP it's neccesary to send `client_username`. Otherwise, like a client not found error, a 404 statuse code will return as the response. in success case 200, id of invoice in Barat CSS as `id` and merchant invoice id as `invoice_id` will returned</li><li>ipg</br>&emsp;&emsp;&emsp;for IPG (Internet Payment Gateway) payment method, sending `client_username` is manadatory, but 404 will not returned as the result of client not found. In sucess case 200, id of invoice in Barat CSS as `id` and merchant invoice id as `invoice_id`, ready to pay IPG URL as `ipg_link` will returned</li></br>`callback_url`:</br>&emsp;&emsp;&emsp;Mandatory if payment_method is ipg. client after his/her payment will redirected to this url. ***we highly suggest** to set query params <u>in order to identify client when he/she redirected to your website.*</u> We consider `https://yoursite.com/?id=123` as a good `callback_url` which `123` is UNIQUE and belongs to this client.  </br></br>`total_price`:</br>&emsp;&emsp;&emsp;The price in IRR currency that client is asked to pay, after applying discounts and/or other parameters.</br>`expire_datetime`:</br>&emsp;&emsp;&emsp;An optional parameter to declare any expiary condition in Iranian calendar and 24 time format: 'day/month/year hour:minute:second timezone' </br>`status`:</br>&emsp;&emsp;&emsp;only `code` in string type </br>Merchant note which is not visible to Client</br>`note`:</br>&emsp;&emsp;&emsp;Merchant note which is not visible to Client</br>`items`</br>&emsp;&emsp;&emsp;Array of items of invoice."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/editInvoice'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceResponse'
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '409':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/editInvoiceErrorResponse409'
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Invoice
+      summary: "cancel an invoice."
+      description: "This API method will cancel invoice and merchant can not pay if He/She didn't yet. Otherwise, an Error response 409 returned."
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '409':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/editInvoiceErrorResponse409'
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+  /invoice/{invoice_id}/send_otp/:
+    parameters:
+      - in: path
+        name: invoice_id
+        schema:
+          type: string
+        required: true
+        description: "`id` returned in create invoice section or merchant `invoice_id`, both are acceptable"
+    get:
+      tags:
+        - Invoice
+      summary: "send or re-send OTP. ONLY for OTP payments"
+      description: "This API will send OTP to client's phone associated with invoice.</br> Re-sending OTP is allowed only once per each minute and each invoice."
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse406'
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+  /invoice/{invoice_id}/authorize_payment/:
+    parameters:
+      - in: path
+        name: invoice_id
+        schema:
+          type: string
+        required: true
+        description: "`id` returned in create invoice section or merchant `invoice_id`, both are acceptable"
+    put:
+      tags:
+        - Invoice
+      summary: "authorize client. ONLY for OTP payments"
+      description: "</br>`* otp`</br>&emsp;&emsp;&emsp;client will provide OTP or TOTP after invoice created to confirm and pay the invoice with his/her Barat wallet.</br>***We highly suggest*** Merchants to check <u>`cash_price`</u> field if `status` is <u>**'3'**</u> which means client paid part of the price and *there is possibility that this part **is not the whole price of invoice*** and this field is the ***price reminder*** that merchant must to receive from client directly, *but it's **zero** in most of cases*"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/authorizeInvoiceByClient'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/responseAuthorizeInvoice'
+        '400':
+          description: Missing at least one of the required parameters - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse400'
+        '403':
+          description: user authentication or authorization failed - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse403'
+        '404':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invoiceErrorResponse404'
+        '405':
+          description: Method not Allowed
+        '409':
+          description: not found - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/editInvoiceErrorResponse409'
+        '500':
+          description: Internal Server Error - description parameter is human-readable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse500'
+      security:
+        - bearerAuth: []
+
+  # /store/search/:
+  #   post:
+  #     tags:
+  #       - Store
+  #     summary: "get list of stores data"
+  #     description: "Search API to retrieve all stores assigned to your merchant"
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/searchStore'
+  #       required: false
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/allStoreResponse'
+  #       '400':
+  #         description: "Missing at least one of the required parameters - description parameter is human-readable"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse400'
+  #       '403':
+  #         description: "authorization failed - description parameter is human-readable"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse403'
+  #       '405':
+  #         description: Method not Allowed
+  #       '500':
+  #         description: "Internal Server Error"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse500'
+  #     security:
+  #       - bearerAuth: []
+  # /store/create/:
+  #   post:
+  #     tags:
+  #       - Store
+  #     summary: "Create store"
+  #     description: "You as a merchant can create stores, depends on the `store_type` and/or branches etc.</br>For all stores, general data are mandatory. For in-person `store_type`s, location related data are mandatory, and for the rest, web related data are mandatory beside the general data.</br>General Data which is ***mandatory*** for All stores:</br><li>`merchant_id`<li>`sub_category`<li>`store_name`<li>`logo_image`<li>`cover_image`<li>`store_type`: '0' -> in-person / '1' -> online - website  </br>***Please Note: after successful response for create and edit of stores, they will staged with `status` code '1' which means they are in queue for confirmation by one of Barat admin staff.***"
+  #     requestBody:
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             $ref: '#/components/schemas/store'
+  #           encoding:
+  #             logo_image:
+  #               contentType: image/png
+  #             cover_image:
+  #               contentType: image/png
+  #       required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeResponse'
+  #       '400':
+  #         description: Missing at least one of the required parameters - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse400'
+  #       '403':
+  #         description: Authorization failed - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse403'
+  #       '405':
+  #         description: Method not 
+  #       '409':
+  #         description: conflict - description parameter is human-readable
+  #       '500':
+  #         description: Internal Server Error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse500'
+  #     security:
+  #       - bearerAuth: []
+  # /store/{store_id}/:
+  #   get:
+  #     tags:
+  #       - Store
+  #     summary: "Retrieve store data"
+  #     description: ""
+  #     parameters:
+  #       - in: path
+  #         name: store_id
+  #         schema:
+  #           type: string
+  #         required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeResponse'
+  #       '403':
+  #         description: "Authorization failed - description parameter is human-readable"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse403'
+  #       '404':
+  #         description: not found - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeErrorResponse404'
+  #       '405':
+  #         description: Method not Allowed
+  #       '500':
+  #         description: Internal Server Error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse500'
+  #     security:
+  #       - bearerAuth: []
+  #   put:
+  #     tags:
+  #       - Store
+  #     summary: "Update store data"
+  #     description: ""
+  #     parameters:
+  #       - in: path
+  #         name: store_id
+  #         schema:
+  #           type: string
+  #         required: true
+  #     requestBody:
+  #       content:
+  #         multipart/form-data:
+  #           schema:
+  #             $ref: '#/components/schemas/editStore'
+  #           encoding:
+  #             logo_image:
+  #               contentType: image/png
+  #             cover_image:
+  #               contentType: image/png
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeResponse'
+  #       '400':
+  #         description: Missing at least one of the required parameters - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse400'
+  #       '403':
+  #         description: "Authorization failed - description parameter is human-readable"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse403'
+  #       '404':
+  #         description: not found - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeErrorResponse404'
+  #       '405':
+  #         description: Method not Allowed
+  #       '409':
+  #         description: conflict - description parameter is human-readable
+  #       '500':
+  #         description: Internal Server Error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse500'
+  #     security:
+  #       - bearerAuth: [] 
+  #   delete:
+  #     tags:
+  #       - Store
+  #     summary: "delete store data"
+  #     description: ""
+  #     parameters:
+  #       - in: path
+  #         name: store_id
+  #         schema:
+  #           type: string
+  #         required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #       '403':
+  #         description: "Authorization failed - description parameter is human-readable"
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse403'
+  #       '404':
+  #         description: not found - description parameter is human-readable
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/storeErrorResponse404'
+  #       '405':
+  #         description: Method not Allowed
+  #       '500':
+  #         description: Internal Server Error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/errorResponse500'
+  #     security:
+  #       - bearerAuth: []
+
+components:
+  schemas:
+    errorResponse500:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "خطای داخلی سرویس دهنده."
+    errorResponse400:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: 
+    errorResponse403:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "احراز هویت کامل نشد و یا شما دسترسی به این بخش را ندارید."
+    invoiceErrorResponse404:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "مشتری و یا فاکتور یافت نشد"
+          description: "value for `description` can be vary for each situations and `description` is human-readable in `fa-ir` language code"
+    # storeErrorResponse404:
+    #   type: object
+    #   properties:
+    #     description:
+    #       type: string
+    #       example: "فروشگاه یافت نشد"
+    errorResponse406:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "ارسال رمز یکبار مصرف هر 1 دقیقه مجاز می باشد"
+    createInvoiceErrorResponse409:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "شماره فاکتور تکراری است."
+    editInvoiceErrorResponse409:
+      type: object
+      properties: 
+        description:
+          type: string
+          example: "شما مجاز به تغییر فاکتور نمی باشید که می تواند به علت وضعیت فاکتور باشد."
+          description: "This field may be vary in other situations and all of them are human-readable text in `fa-ir` language code"
+    createInvoice:
+      type: object
+      properties:
+        store_id:
+          type: string
+          example: "dfsUHUGL7678"
+          nullable: true
+        invoice_id:
+          type: string
+          example: '123'
+          maxLength: 150
+          minLength: 1
+        payment_method:
+          type: string
+          example: 'ipg'
+          description: "otp - ipg"
+        callback_url:
+          type: string
+          example: 
+          nullable: true
+        client_username:
+          type: string
+          example: '09000000000'
+        note:
+          type: string
+          example: 
+          nullable: true
+        total_price:
+          type: integer
+          example: 100000
+        expire_datetime:
+          type: string
+          example: "25/9/1402 10:25:36 Asia/Tehran"
+          nullable: True
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_name:
+                type: string
+                example: "نام کالا یا خدمت"
+              item_quantity:
+                type: integer
+                example: 2
+              item_price:
+                type: integer
+                example: 100000
+                description: "price in IRR currency"
+    editInvoice:
+      type: object
+      properties:
+        store_id:
+          type: string
+          example: "dfsUHUGL7678"
+          nullable: true
+        payment_method:
+          type: string
+          example: 'ipg'
+          nullable: true
+          description: "otp - ipg"
+        callback_url:
+          type: string
+          example: 
+          nullable: true
+        client_username:
+          type: string
+          example: '09000000000'
+          nullable: true
+        note:
+          type: string
+          example: 
+          nullable: true
+        total_price:
+          type: integer
+          example: 100000
+        expire_datetime:
+          type: string
+          example: "25/9/1402 10:25:36 Asia/Tehran"
+          nullable: True
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_name:
+                type: string
+                example: "نام کالا یا خدمت"
+              item_quantity:
+                type: integer
+                example: 2
+              item_price:
+                type: integer
+                example: 100000
+                description: "price in IRR currency"
+    invoiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'dfgy7s6fgsdfjss78d67s6f7'
+        store_id:
+          type: string
+          example: "dfsUHUGL7678"
+          nullable: true
+        invoice_id:
+          type: string
+          example: '123456fdsa'
+        payment_method:
+          type: string
+          example: 'ipg'
+          description: "returns 'ipg' or 'otp'"
+        ipg_url:
+          type: string
+          format: url
+          nullable: true
+          example: 'https://pay.barat.credit/fhjkLFHDUDY678453743JHGKJI/'
+          description: "<u>only if method 'ipg' is set to invoice. Otherwise, it will be null</u>"
+        client_username:
+          type: string
+          example: "09000000000"
+          nullable: True
+        expire_datetime:
+          type: string
+          example: "25/9/1402 10:25:36 Asia/Tehran"
+          nullable: True
+        total_price:
+          type: integer
+          example: 100000
+          description: "Invoice price"
+        cash_price:
+          type: integer
+          example: 20000
+          minimum: 0
+        paid_with_barat_price:
+          type: integer
+          example: 80000
+          minimum: 0
+          description: "This value is the price that Client paid with his/her wallet in Barat CSS and Barat will re-pay with merchant base on the aggreement."
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_name:
+                type: string
+                example: "نام کالا یا خدمت"
+              item_quantity:
+                type: integer
+                example: 2
+              item_price:
+                type: integer
+                example: 100000
+                description: "price in IRR currency"
+        settlements:
+          nullable: true
+          type: array
+          items:
+            type: object
+            properties:
+              price: 
+                type: integer
+                example: 40000
+                description: "re-pay price"
+              payment_datetime:
+                type: string
+                example: "25/10/1402 10:25:36 Asia/Tehran"
+        callback_url:
+          type: string
+          format: url
+          nullable: true
+          example: "https://yoursite.com/callback/?invoice_id=123456fdsa"
+        status:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                example: '1'
+              text:
+                type: string
+                example: 'در انتظار تائید مشتری'
+            description: "</br><li>`code` & `text`:</br>&emsp;&emsp;&emsp;`code` is the string code for any possible situation that any invoice can be in Barat CSS and `text` is human-readable text to represent it in `fa-ir` language code. Available `code`s are the followings:<li>1</br>&emsp;&emsp;&emsp;submited by merchant and client can pay.<li>3</br>&emsp;&emsp;&emsp;client paid<li>4</br>&emsp;&emsp;&emsp;Merchant Canceled Invoice<li>5</br>&emsp;&emsp;&emsp;Client Canceled Invoice<li>7</br>&emsp;&emsp;&emsp;Barat Canceled Invoice due to regulatory rules if any"
+        note:
+          type: string
+          example: 
+          description: "Merchant note which is not visible to Client"
+        description:
+          type: string
+          example: 'موفق'
+    authorizeInvoiceByClient:
+      type: object
+      properties:
+        otp:
+          type: string
+          example: '123456'
+    responseAuthorizeInvoice:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'dfgy7s6fgsdfjss78d67s6f7'
+        invoice_id:
+          type: string
+          example: '123456fdsa'
+        payment_method:
+          type: string
+          example: "ipg"
+          description: "only 'ipg' or 'otp'"
+        client_username:
+          type: string
+          example: "09000000000"
+          nullable: True
+        expire_datetime:
+          type: string
+          example: "25/9/1402 10:25:36 Asia/Tehran"
+          nullable: True
+        total_price:
+          type: integer
+          example: 100000
+          description: "Invoice price"
+        cash_price:
+          type: integer
+          example: 20000
+          minimum: 0
+        paid_with_barat_price:
+          type: integer
+          example: 80000
+          minimum: 0
+          description: "This value is the price that Client paid with his/her wallet in Barat CSS and Barat will re-pay with merchant base on the aggreement."
+        settlements:
+          type: array
+          items:
+            type: object
+            properties:
+              price: 
+                type: integer
+                example: 40000
+                description: "re-pay price"
+              payment_datetime:
+                type: string
+                example: "25/10/1402 10:25:36 Asia/Tehran"
+        callback_url:
+          type: string
+          format: url
+          nullable: true
+          example: "https://yoursite.com/callback/?invoice_id=123456fdsa"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_name:
+                type: string
+                example: "نام کالا یا خدمت"
+              item_quantity:
+                type: integer
+                example: 2
+              item_price:
+                type: integer
+                example: 100000
+                description: "price in IRR currency"
+        status:
+          type: object
+          properties:
+            code:
+              type: string
+              example: '2'
+            text:
+              type: string
+              example: 'پرداخت مشتری'
+          description: "</br><li>`code` & `text`:</br>&emsp;&emsp;&emsp;`code` is the string code for any possible situation that any invoice can be in Barat CSS and `text` is human-readable text to represent it in `fa-ir` language code. Available `code`s are the followings:<li>1</br>&emsp;&emsp;&emsp;submited by merchant and client can pay.<li>2</br>&emsp;&emsp;&emsp;client paid<li>4</br>&emsp;&emsp;&emsp;Merchant Canceled Invoice<li>5</br>&emsp;&emsp;&emsp;Client Canceled Invoice<li>7</br>&emsp;&emsp;&emsp;Barat Canceled Invoice due to regulatory rules if any"
+        note:
+          type: string
+          example: 
+          description: "Merchant note which is not visible to Client"
+        ipg_url:
+          type: string
+          format: url
+          nullable: true
+          example: 'https://pay.barat.credit/fhjkLFHDUDY678453743JHGKJI/'
+          description: "<u>only if method ipg is set to invoice. Otherwise, it will be null</u>"
+        description:
+          type: string
+          example: 'موفق'
+    # searchStore:
+    #   type: object
+    #   properties:
+    #     page:
+    #       type: integer
+    #       example: 1
+    #       nullable: true
+    #     search_status:
+    #       type: string
+    #       example: "0"
+    #       description: "<li>'0' -> draft<li>'1' -> waiting for confirmation<li>'2' -> active<li>'3' -> deactive<li>'4' -> under review<li>'5' -> removed"
+    #       nullable: true
+    #     search_sub_category_id:
+    #       type: string
+    #       example: "hkhKHHJKLHh76795"
+    #       nullable: true
+    #     search_store_name:
+    #       type: string
+    #       example: "فروشگاه لوازم دیجیتال"
+    #       nullable: true
+    #     search_sub_name:
+    #       type: string
+    #       example: "شعبه 7"
+    #       nullable: true
+    #     search_store_description:
+    #       type: string
+    #       example: "توضیحات فروشگاه ...."
+    #       nullable: true
+    #     search_has_logo:
+    #       type: boolean
+    #       example: false
+    #       nullable: true
+    #     search_has_cover:
+    #       type: boolean
+    #       example: true
+    #       nullable: true
+    #     search_store_type:
+    #       type: string
+    #       example: "0"
+    #       description: "<li>'0' -> in-person<li>'1' -> online - website"
+    #       nullable: true
+    #     search_city_id:
+    #       type: string
+    #       example: "hkhKHHJKLHh76795"
+    #       description: "required for in-person stores"
+    #       nullable: true
+    # allStoreResponse:
+    #   type: object
+    #   properties:
+    #     stores:
+    #       type: array
+    #       items:
+    #         type: object
+    #         properties:
+    #           id:
+    #             type: string
+    #             example: "hlhjhBJHKGLU78t7YYy"
+    #           status:
+    #             type: string
+    #             example: "0"
+    #           sub_category_ids:
+    #             type: array
+    #             items:
+    #               type: string
+    #               example: "hkhKHHJKLHh76795"
+    #           store_name:
+    #             type: string
+    #             example: "فروشگاه اینترنتی"
+    #           sub_name:
+    #             type: string
+    #             example: "شعبه 7"
+    #           logo_url:
+    #             type: string
+    #             example: "https://static.barat.credit/uh34hkj54h3u.png"
+    #           store_type:
+    #             type: string
+    #             example: "0"
+    #           city:
+    #             type: object
+    #             properties:
+    #               id:
+    #                 type: string
+    #                 example: "hGklgHGkG777t7LGBY"
+    #               country_name:
+    #                 type: string
+    #                 example: "ایران"
+    #               provience_name:
+    #                 type: string
+    #                 example: "تهران"
+    #               city_name:
+    #                 type: string
+    #                 example: "تهران"
+    #           store_description:
+    #             type: string
+    #             example: "توضیحات فروشگاه - قابل نمایش برای مشتریان"
+    #     page:
+    #       type: object
+    #       properties:
+    #         current_page:
+    #           type: integer
+    #           example: 2
+    #         max_page:
+    #           type: integer
+    #           example: 5
+    #         previous_page:
+    #           type: integer
+    #           example: 1
+    #           nullable: true
+    #         next_page:
+    #           type: integer
+    #           example: 3
+    #           nullable: true
+    #     total_count_of_search:
+    #       type: integer
+    #       example: 100
+    # storeResponse:
+    #   type: object
+    #   properties:
+    #     store:
+    #       type: object
+    #       properties:
+    #         id:
+    #           type: string
+    #           example: "hlhjhBJHKGLU78t7YYy"
+    #         status:
+    #           type: string
+    #           example: "0"
+    #         sub_category_ids:
+    #           type: array
+    #           items:
+    #             type: string
+    #             example: "hkhKHHJKLHh76795"
+    #         store_name:
+    #           type: string
+    #           example: "فروشگاه اینترنتی"
+    #         sub_name:
+    #           type: string
+    #           example: "شعبه 7"
+    #         store_description:
+    #             type: string
+    #             example: "توضیحات فروشگاه - قابل نمایش برای مشتریان"
+    #         logo_url:
+    #           type: string
+    #           example: "https://static.barat.credit/uh34hkj54h3u.png"
+    #         cover_url:
+    #           type: string
+    #           example: "https://static.barat.credit/uh34hkj54h3u.png"
+    #         store_type:
+    #           type: string
+    #           example: "0"
+    #         store_link:
+    #           type: string
+    #           example: "https://your_store_website.com"
+    #         store_lat:
+    #           type: number
+    #           format: float
+    #           maximum: 90
+    #           minimum: -90
+    #         store_long:
+    #           type: number
+    #           format: float
+    #           maximum: 180
+    #           minimum: -180
+    #         city:
+    #           type: object
+    #           properties:
+    #             id:
+    #               type: string
+    #               example: "hGklgHGkG777t7LGBY"
+    #             country_name:
+    #               type: string
+    #               example: "ایران"
+    #             provience_name:
+    #               type: string
+    #               example: "تهران"
+    #             city_name:
+    #               type: string
+    #               example: "تهران"
+    #         store_address:
+    #           type: string
+    #           example: "میدان ..."
+    #         store_building_name:
+    #           type: string
+    #           example: "یاس"
+    #         store_number:
+    #           type: string
+    #           example: "1/ب"
+    #         store_floor:
+    #           type: string
+    #           example: "B1"
+    #         store_unit:
+    #           type: string
+    #           example: "1 شرقی"
+    #         store_zip:
+    #           type: string
+    #           example: "1111111111"
+    #         store_phone:
+    #           type: string
+    #           example: "021..."
+    # store:
+    #   type: object
+    #   properties:
+    #     store_name:
+    #       type: string
+    #       example: "فروشگاه اینترنتی"
+    #     sub_name:
+    #       type: string
+    #       example: "شعبه 7"
+    #     store_description:
+    #       type: string
+    #       example: "توضیحات فروشگاه."
+    #     logo_image:
+    #       type: string
+    #       format: binary
+    #     cover_image:
+    #       type: string
+    #       format: binary
+    #     store_type:
+    #       type: string
+    #       example: "0"
+    #     store_link:
+    #       type: string
+    #       example: "https://your_store_website.com"
+    #     store_lat:
+    #       type: number
+    #       format: float
+    #       maximum: 90
+    #       minimum: -90
+    #     store_long:
+    #       type: number
+    #       format: float
+    #       maximum: 180
+    #       minimum: -180
+    #     city_id:
+    #       type: string
+    #       example: "hGklgHGkG777t7LGBY"
+    #     store_address:
+    #       type: string
+    #       example: "میدان ..."
+    #     store_building_name:
+    #       type: string
+    #       example: "یاس"
+    #     store_number:
+    #       type: string
+    #       example: "1/ب"
+    #     store_floor:
+    #       type: string
+    #       example: "B1"
+    #     store_unit:
+    #       type: string
+    #       example: "1 شرقی"
+    #     store_zip:
+    #       type: string
+    #       example: "1111111111"
+    #     store_phone:
+    #       type: string
+    #       example: "021..."
+    #   required:
+    #     - store_name
+    #     - sub_name
+    #     - store_description
+    #     - logo_image
+    #     - cover_image
+    #     - store_type
+    # editStore:
+    #   type: object
+    #   properties:
+    #     sub_category_id:
+    #       type: string
+    #       example: "hkhKHHJKLHh76795"
+    #     store_name:
+    #       type: string
+    #       example: "فروشگاه اینترنتی"
+    #     sub_name:
+    #       type: string
+    #       example: "شعبه 7"
+    #     store_description:
+    #       type: string
+    #       example: "توضیحات فروشگاه."
+    #     logo_image:
+    #       type: string
+    #       format: binary
+    #     cover_image:
+    #       type: string
+    #       format: binary
+    #     store_type:
+    #       type: string
+    #       example: "0"
+    #     store_link:
+    #       type: string
+    #       example: "https://your_store_website.com"
+    #     store_lat:
+    #       type: number
+    #       format: float
+    #       maximum: 90
+    #       minimum: -90
+    #     store_long:
+    #       type: number
+    #       format: float
+    #       maximum: 180
+    #       minimum: -180
+    #     city_id:
+    #       type: string
+    #       example: "hGklgHGkG777t7LGBY"
+    #     store_address:
+    #       type: string
+    #       example: "میدان ..."
+    #     store_building_name:
+    #       type: string
+    #       example: "یاس"
+    #     store_number:
+    #       type: string
+    #       example: "1/ب"
+    #     store_floor:
+    #       type: string
+    #       example: "B1"
+    #     store_unit:
+    #       type: string
+    #       example: "1 شرقی"
+    #     store_zip:
+    #       type: string
+    #       example: "1111111111"
+    #     store_phone:
+    #       type: string
+    #       example: "021..."
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
